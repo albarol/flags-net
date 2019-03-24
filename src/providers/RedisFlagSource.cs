@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using StackExchange.Redis;
 
 namespace FlagsNet.Providers
@@ -13,14 +15,21 @@ namespace FlagsNet.Providers
             db = connection.GetDatabase();
         }
 
-        public bool Switch(string key)
+        public bool Switch(string flag)
         {
-            return true;
+            var value = db.StringGet(flag);
+            return Convert.ToBoolean(value);
         }
 
-        public bool Switch(string key, params string[] conditions)
+        public bool Switch(string flag, params string[] conditions)
         {
-            throw new System.NotImplementedException();
+            var members = db.SetMembers(flag);
+            if (members.Length == 0) return false;
+
+            var hashMembers = new HashSet<string>(members.Select(m => m.ToString()));
+            var hashConditions = new HashSet<string>(conditions);
+            hashConditions.IntersectWith(hashMembers);
+            return hashConditions.Count > 0;
         }
     }
 }

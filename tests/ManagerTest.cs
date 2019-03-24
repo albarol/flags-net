@@ -9,23 +9,30 @@ namespace FlagsNet.Tests
     {
         Manager manager;
 
-        [SetUp]
+        [OneTimeSetUp]
         public void Setup()
         {
             var flags = new Dictionary<string, string> {
-                {"feature.key.enabled", "true"},
-                {"feature.key.disabled", "false"},
-                {"feature.number", "1"},
-                {"feature.list", "1|2|3"},
+                {"feature:switch:enabled", "true"},
+                {"feature:switch:disabled", "false"},
+                {"feature:number", "1"},
+                {"feature:list", "1|2|3"},
             };
-
             manager = new Manager(new MemoryFlagSource(flags));
+        }
+
+        [Test]
+        public void Test_Manager_Should_Return_Inactive_If_Switch_Does_Not_Exist()
+        {
+            var feature = manager.Active("feature:switch:invalid");
+
+            Assert.IsFalse(feature);
         }
 
         [Test]
         public void Test_Manager_Should_Return_Active_Switch()
         {
-            var feature = manager.Active("feature.key.enabled");
+            var feature = manager.Active("feature:switch:enabled");
 
             Assert.IsTrue(feature);
         }
@@ -33,7 +40,7 @@ namespace FlagsNet.Tests
         [Test]
         public void Test_Manager_Should_Return_Inactive_Switch()
         {
-            var feature = manager.Active("feature.key.disabled");
+            var feature = manager.Active("feature:switch:disabled");
 
             Assert.IsFalse(feature);
         }
@@ -41,7 +48,7 @@ namespace FlagsNet.Tests
         [Test]
         public void Test_Manager_Should_Return_Active_When_Number_Matches()
         {
-            var feature = manager.Active("feature.number", "1");
+            var feature = manager.Active("feature:number", "1");
 
             Assert.IsTrue(feature);
         }
@@ -49,7 +56,7 @@ namespace FlagsNet.Tests
         [Test]
         public void Test_Manager_Should_Return_Inactive_When_Number_Does_Not_Match()
         {
-            var feature = manager.Active("feature.number", "2");
+            var feature = manager.Active("feature:number", "2");
 
             Assert.IsFalse(feature);
         }
@@ -60,21 +67,21 @@ namespace FlagsNet.Tests
         [TestCase("3")]
         public void Test_Manager_Should_Return_Active_When_Number_Belongs_To_List(string number)
         {
-            var feature = manager.Active("feature.list", number);
+            var feature = manager.Active("feature:list", number);
             Assert.IsTrue(feature);
         }
 
         [Test]
         public void Test_Manager_Should_Return_Active_When_At_Least_One_Number_Belongs_To_List()
         {
-            var feature = manager.Active("feature.list", "1", "5");
+            var feature = manager.Active("feature:list", "1", "5");
             Assert.IsTrue(feature);
         }
 
         [Test]
         public void Test_Manager_Should_Return_Inactive_When_Number_Does_Not_Belong_To_List()
         {
-            var feature = manager.Active("feature.list", "5");
+            var feature = manager.Active("feature:list", "5");
             Assert.IsFalse(feature);
         }
     }
