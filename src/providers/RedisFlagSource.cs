@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using StackExchange.Redis;
 
 namespace FlagsNet.Providers
@@ -13,6 +14,21 @@ namespace FlagsNet.Providers
         public RedisFlagSource(string hostname) {
             connection = ConnectionMultiplexer.Connect(hostname);
             db = connection.GetDatabase();
+        }
+
+        public void Activate(string key)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Add(string key, FlagParameter parameter, FlagStatus status)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Deactivate(string key)
+        {
+            throw new NotImplementedException();
         }
 
         public bool Switch(string flag)
@@ -30,6 +46,11 @@ namespace FlagsNet.Providers
             var hashConditions = new HashSet<string>(conditions);
             hashConditions.IntersectWith(hashMembers);
             return hashConditions.Count > 0;
+        }
+        public bool Switch<T>(string key, Predicate<T> expression)
+        //public bool Switch<T>(string key, Expression<Func<T, bool>> expression)
+        {
+            throw new NotImplementedException();
         }
     }
 }

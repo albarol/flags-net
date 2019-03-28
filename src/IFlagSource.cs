@@ -1,10 +1,16 @@
+using System;
 using System.Collections.Generic;
+using System.Linq.Expressions;
 
 namespace FlagsNet
 {
     public interface IFlagSource
     {
+        void Activate(string key);
+        void Deactivate(string key);
+        void Add(string key, FlagParameter parameter, FlagStatus status);
+
         bool Switch(string key);
-        bool Switch(string key, params string[] conditions);
+        bool Switch<T>(string key, Predicate<T> expression);
     }
 }
