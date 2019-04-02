@@ -1,0 +1,54 @@
+#!/usr/bin/env bash
+
+GREEN="\e[32m"
+RED="\e[31m"
+BLUE="\e[94;1m"
+DIM="\e[2m"
+BOLD="\e[1m"
+NC="\e[0m"
+
+message_help() {
+printf  "\
+\$ flags-net [comand] [arguments]
+
+${BOLD}Usage:${NC}
+ flags-net ${GREEN}start-redis${NC}
+ flags-net ${GREEN}stop-redis${NC}
+
+${BOLD}Commands:${NC}
+ ${GREEN}start-redis${NC}   Start instance of redis running over docker.
+ ${GREEN}stop-redis${NC}    Stop instance of redis running over docker.
+
+${BOLD}Options:${NC}
+${GREEN}--h${NC}elp     Display this help.
+"
+}
+
+process_start_redis() {
+    docker run --name flags-net -p 6379:6379 -d redis
+    exit 0
+}
+
+process_stop_redis() {
+    docker stop flags-net
+}
+
+process_commands() {
+    local cmd=$1
+    shift
+
+    case $cmd in
+        start-redis) process_start_redis;;
+        stop-redis) process_stop_redis;;
+        *) message_help;;
+    esac
+}
+
+
+if [[ "${@:-1}" = "--help" ]] && [[ "$#" -eq 1 ]]; then
+    message_help && exit 0
+elif [[ "$#" -ge 1 ]]; then
+    process_commands $@
+else
+    message_help && exit 0
+fi

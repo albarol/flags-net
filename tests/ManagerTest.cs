@@ -3,6 +3,7 @@ using NUnit.Framework;
 
 using FlagsNet.Providers;
 using System;
+using Newtonsoft.Json;
 
 namespace FlagsNet.Tests
 {
@@ -65,7 +66,6 @@ namespace FlagsNet.Tests
         public void Test_Manager_Should_Return_Inactive_When_Number_Does_Not_Match()
         {
             var feature = manager.Active<int>("feature:number", el => el == 2);
-
             Assert.IsFalse(feature);
         }
 
@@ -119,6 +119,17 @@ namespace FlagsNet.Tests
         {
             var feature = manager.Active("feature:custom");
             Assert.IsFalse(feature);
+        }
+
+        [Test]
+        public void Test_Manager_Load_Data()
+        {
+            var content = "{\"feature:switch:newEnabled\": {\"Activated\": \"True\",\"Conditions\": null}, \"feature:switch:newDisabled\": {\"Activated\": \"False\", \"Conditions\": null}, \"feature:newCustom\": {\"Activated\": \"True\", \"Conditions\": [{\"Name\":\"MyFeature\"}]}}";
+            manager.Load(content);
+
+            Assert.IsTrue(manager.Active("feature:switch:newEnabled"));
+            Assert.IsFalse(manager.Active("feature:switch:newDisabled"));
+            Assert.IsTrue(manager.Active<IDictionary<string, string>>("feature:newCustom", p => p.ContainsKey("Name") && p["Name"] == "MyFeature"));
         }
     }
 }

@@ -10,7 +10,7 @@ namespace FlagsNet.Providers
     public class RedisFlagSource : IFlagSource
     {
         private readonly string ACTIVATED_FLAG = "Activated";
-        private readonly string VALUE_FLAG = "Value";
+        private readonly string VALUE_FLAG = "Conditions";
 
         ConnectionMultiplexer connection;
         IDatabase db;
@@ -58,6 +58,7 @@ namespace FlagsNet.Providers
             if (!activated) return false;
 
             var value = db.HashGet(key, VALUE_FLAG);
+            Console.WriteLine("RedisFlagSource.Switch: {0}", value);
             var deserialized = JsonConvert.DeserializeObject<IList<T>>(value);
             foreach (var item in deserialized)
                 if (predicate(item))
