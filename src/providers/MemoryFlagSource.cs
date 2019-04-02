@@ -8,34 +8,40 @@ namespace FlagsNet.Providers
 {
     public class MemoryFlagSource : IFlagSource
     {
-        private readonly IDictionary<string, KeyValuePair<FlagStatus, string>> source;
+        private readonly IDictionary<string, FlagParameter> source;
 
         public MemoryFlagSource()
         {
-            this.source = new Dictionary<string, KeyValuePair<FlagStatus, string>>();
+            this.source = new Dictionary<string, FlagParameter>();
         }
 
         public void Activate(string key)
         {
             if (!source.ContainsKey(key))
                 return;
-            source[key] = new KeyValuePair<FlagStatus, string>(FlagStatus.Activated, source[key].Value);
+            source[key].Activated = true;
         }
 
-        public void Add(string key, FlagParameter parameter, FlagStatus status)
+        public void Add(string key, FlagParameter parameter)
         {
-            source[key] = new KeyValuePair<FlagStatus, string>(status, parameter.Value);
+            if (!source.ContainsKey(key))
+                source.Add(key, parameter);
+            else
+                source[key] = parameter;
         }
 
         public void Deactivate(string key)
         {
-            source[key] = new KeyValuePair<FlagStatus, string>(FlagStatus.Deactivated, source[key].Value);
+            if (!source.ContainsKey(key))
+                return;
+            source[key].Activated = false;
         }
 
         public bool Switch(string key)
         {
             if (!source.ContainsKey(key)) return false;
-            return source[key].Key != FlagStatus.Deactivated;
+            var flag = source[key];
+            return flag.Activated && string.IsNullOrEmpty(flag.Value);
         }
 
         public bool Switch<T>(string key, Predicate<T> predicate)
@@ -43,7 +49,7 @@ namespace FlagsNet.Providers
             if (!source.ContainsKey(key)) return false;
             var flag = source[key];
 
-            if (flag.Key == FlagStatus.Deactivated) return false;
+            if (!flag.Activated) return false;
             var deserialized = JsonConvert.DeserializeObject<IList<T>>(flag.Value);
             foreach (var item in deserialized)
                 if (predicate(item))

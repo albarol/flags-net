@@ -30,17 +30,17 @@ namespace FlagsNet
             source.Activate(flag);
         }
 
-        public void Add(string flag, FlagStatus status)
+        public void Add(string flag, bool activated)
         {
-            source.Add(flag, FlagParameter.Empty, status);
+            source.Add(flag, FlagParameter.CreateEmpty(activated));
         }
 
-        public void Add<T>(string flag, T parameter, FlagStatus status)
+        public void Add<T>(string flag, T parameter, bool activated)
         {
             if (IsList(parameter))
-                source.Add(flag, FlagParameter.CreateFromObject(parameter), status);
+                source.Add(flag, FlagParameter.CreateFromObject(parameter, activated));
             else
-                source.Add(flag, FlagParameter.CreateFromObject(new List<T>{parameter}), status);
+                source.Add(flag, FlagParameter.CreateFromObject(new List<T>{parameter}, activated));
         }
 
         private bool IsList(object obj)

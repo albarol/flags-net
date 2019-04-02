@@ -7,26 +7,24 @@ namespace FlagsNet
     public sealed class FlagParameter
     {
         public string Value { get; private set; }
+        public bool Activated { get; internal set; }
 
         private FlagParameter() { }
 
-        internal static FlagParameter CreateFromObject<T>(T value)
+        internal static FlagParameter CreateFromObject<T>(T value, bool activated = false)
         {
             var serialized = JsonConvert.SerializeObject(value);
-            return new FlagParameter { Value = serialized };
+            return new FlagParameter { Value = serialized, Activated = activated };
         }
 
-        internal static FlagParameter Empty
+        internal static FlagParameter CreateEmpty(bool activated = false)
         {
-            get
-            {
-                return new FlagParameter { Value = string.Empty };
-            }
+            return new FlagParameter { Value = string.Empty, Activated = activated };
         }
 
         public static implicit operator FlagParameter(string value)
         {
-            return new FlagParameter { Value = value };
+            return new FlagParameter { Value = value, Activated = false };
         }
 
         public static implicit operator string(FlagParameter value)

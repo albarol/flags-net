@@ -6,27 +6,28 @@ using System;
 
 namespace FlagsNet.Tests
 {
-    public class ManagerTest
+    public abstract class ManagerTest
     {
         Manager manager;
-        CustomFlag flag;
 
         [OneTimeSetUp]
         public void Setup()
         {
-            flag = new CustomFlag
+            CustomFlag flag = new CustomFlag
             {
                 Name = "flags-net",
                 Parameter = "flags-net-parameter"
             };
-            manager = new Manager(new MemoryFlagSource());
 
-            manager.Add("feature:switch:enabled", FlagStatus.Activated);
-            manager.Add("feature:switch:disabled", FlagStatus.Deactivated);
-            manager.Add("feature:number", 1, FlagStatus.Activated);
-            manager.Add("feature:list", new List<string>{"1", "2", "3"}, FlagStatus.Activated);
-            manager.Add("feature:custom", flag, FlagStatus.Activated);
+            manager = CreateManager();
+            manager.Add("feature:switch:enabled", true);
+            manager.Add("feature:switch:disabled", false);
+            manager.Add("feature:number", 1, true);
+            manager.Add("feature:list", new List<string>{"1", "2", "3"}, true);
+            manager.Add("feature:custom", flag, true);
         }
+
+        protected abstract Manager CreateManager();
 
         [Test]
         public void Test_Manager_Should_Return_Inactive_If_Switch_Does_Not_Exist()
@@ -100,9 +101,23 @@ namespace FlagsNet.Tests
         }
 
         [Test]
-        public void Test_Manager_Custom_Should_Return_Active_If_Pattern_Does_Not_Match()
+        public void Test_Manager_Custom_Should_Return_Inactive_If_Pattern_Does_Not_Match()
         {
             var feature = manager.Active<CustomFlag>("feature:custom", f => f.Name == "flags-net2");
+            Assert.IsFalse(feature);
+        }
+
+        [Test]
+        public void Test_Manager_Custom_Should_Return_Active_Using_KeyValuePair_Match()
+        {
+            var feature = manager.Active<IDictionary<string, string>>("feature:custom", p => p.ContainsKey("Name"));
+            Assert.IsTrue(feature);
+        }
+
+        [Test]
+        public void Test_Manager_Custom_Should_Return_Inactive_If_Pattern_Has_Not_Being_Passed()
+        {
+            var feature = manager.Active("feature:custom");
             Assert.IsFalse(feature);
         }
     }
