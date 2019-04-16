@@ -12,5 +12,7 @@ namespace FlagsNet
 
         bool Switch(string key);
         bool Switch<T>(string key, Predicate<T> expression);
+
+        IEnumerable<string> GetFlags();
     }
 }

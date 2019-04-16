@@ -15,6 +15,11 @@ namespace FlagsNet.Providers
             this.source = new Dictionary<string, FlagParameter>();
         }
 
+        public IEnumerable<String> GetFlags()
+        {
+            return source.Keys;
+        }
+
         public void Activate(string key)
         {
             if (!source.ContainsKey(key))

@@ -11,17 +11,39 @@ namespace FlagsNet.Providers
     {
         private readonly string ACTIVATED_FLAG = "Activated";
         private readonly string VALUE_FLAG = "Conditions";
+        private readonly string KEYS_FLAG = "Keys";
 
-        ConnectionMultiplexer connection;
-        IDatabase db;
+        string hostname;
 
-        public RedisFlagSource(string hostname) {
-            connection = ConnectionMultiplexer.Connect(hostname);
-            db = connection.GetDatabase();
+        public RedisFlagSource(string hostname)
+        {
+            this.hostname = hostname;
+        }
+
+        private IDatabase Database
+        {
+            get
+            {
+                try
+                {
+                    var connection = ConnectionMultiplexer.Connect(hostname);
+                    return connection.GetDatabase();
+                }
+                catch
+                {
+                    throw new FlagSourceException("Client was not able to connect.");
+                }
+            }
+        }
+
+        public IEnumerable<string> GetFlags()
+        {
+            return Database.ListRange(KEYS_FLAG).Select(v => v.ToString());
         }
 
         public void Activate(string key)
         {
+            var db = Database;
             if (!db.HashExists(key, ACTIVATED_FLAG))
                 return;
             db.HashSet(key, new HashEntry[] { new HashEntry(ACTIVATED_FLAG, Boolean.TrueString)});
@@ -29,14 +51,17 @@ namespace FlagsNet.Providers
 
         public void Add(string key, FlagParameter parameter)
         {
+            var db = Database;
             db.HashSet(key, new HashEntry[] {
                 new HashEntry(ACTIVATED_FLAG, parameter.Activated ? Boolean.TrueString : Boolean.FalseString),
                 new HashEntry(VALUE_FLAG, parameter.Value),
             });
+            db.ListRightPush(KEYS_FLAG, key);
         }
 
         public void Deactivate(string key)
         {
+            var db = Database;
             if (!db.HashExists(key, ACTIVATED_FLAG))
                 return;
             db.HashSet(key, new HashEntry[] { new HashEntry(ACTIVATED_FLAG, Boolean.FalseString)});
@@ -44,6 +69,7 @@ namespace FlagsNet.Providers
 
         public bool Switch(string key)
         {
+            var db = Database;
             if (!HasFeature(key)) return false;
             var activated = Convert.ToBoolean(db.HashGet(key, ACTIVATED_FLAG));
             var value = db.HashGet(key, VALUE_FLAG);
@@ -52,13 +78,13 @@ namespace FlagsNet.Providers
 
         public bool Switch<T>(string key, Predicate<T> predicate)
         {
+            var db = Database;
             if (!HasFeature(key)) return false;
 
             var activated = Convert.ToBoolean(db.HashGet(key, ACTIVATED_FLAG));
             if (!activated) return false;
 
             var value = db.HashGet(key, VALUE_FLAG);
-            Console.WriteLine("RedisFlagSource.Switch: {0}", value);
             var deserialized = JsonConvert.DeserializeObject<IList<T>>(value);
             foreach (var item in deserialized)
                 if (predicate(item))
@@ -68,6 +94,7 @@ namespace FlagsNet.Providers
 
         private bool HasFeature(string key)
         {
+            var db = Database;
             return db.HashExists(key, ACTIVATED_FLAG) && db.HashExists(key, VALUE_FLAG);
         }
     }

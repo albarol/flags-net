@@ -6,7 +6,7 @@ using System;
 
 namespace FlagsNet.Tests
 {
-    [Ignore("Just run it if you have a instance of redis running")]
+    //[Ignore("Just run it if you have a instance of redis running")]
     public class RedisManagerTest : ManagerTest
     {
         protected override Manager CreateManager()
