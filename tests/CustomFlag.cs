@@ -6,6 +6,5 @@ namespace FlagsNet.Tests
     {
         public string Name { get; set; }
         public string Parameter { get; set; }
-        public IList<string> SubElements { get; set; }
     }
 }

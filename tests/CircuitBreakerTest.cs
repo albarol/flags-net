@@ -45,5 +45,13 @@ namespace FlagsNet.Tests
             circuit.SetFail(DateTime.UtcNow.AddMinutes(-1));
             Assert.AreEqual(CircuitStatus.Closed, circuit.Status);
         }
+
+        [Test]
+        public void Test_Should_Return_HalfOpen_If_Time_Has_Not_Passed()
+        {
+            var circuit = new CircuitBreaker(phaseSeconds: 70);
+            circuit.SetFail(DateTime.UtcNow.AddMinutes(-1));
+            Assert.AreEqual(CircuitStatus.HalfOpen, circuit.Status);
+        }
     }
 }

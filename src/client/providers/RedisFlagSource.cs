@@ -38,7 +38,7 @@ namespace FlagsNet.Providers
 
         public IEnumerable<string> GetFlags()
         {
-            return Database.ListRange(KEYS_FLAG).Select(v => v.ToString());
+            return Database.SetMembers(KEYS_FLAG).Select(v => v.ToString());
         }
 
         public void Activate(string key)
@@ -56,7 +56,7 @@ namespace FlagsNet.Providers
                 new HashEntry(ACTIVATED_FLAG, parameter.Activated ? Boolean.TrueString : Boolean.FalseString),
                 new HashEntry(VALUE_FLAG, parameter.Value),
             });
-            db.ListRightPush(KEYS_FLAG, key);
+            db.SetAdd(KEYS_FLAG, key);
         }
 
         public void Deactivate(string key)

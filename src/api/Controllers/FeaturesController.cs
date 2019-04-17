@@ -1,45 +1,52 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
+using FlagsNet;
+using FlagsNet.Api.Models;
+using FlagsNet.Providers;
 using Microsoft.AspNetCore.Mvc;
 
 namespace api.Controllers
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class ValuesController : ControllerBase
+    public class FeaturesController : ControllerBase
     {
-        // GET api/values
+        private readonly Manager manager;
+
+        public FeaturesController() {
+            this.manager = new Manager(new RedisFlagSource("localhost:6379"));
+        }
+
+        [Route("[controller]")]
         [HttpGet]
         public ActionResult<IEnumerable<string>> Get()
         {
-            return new string[] { "value1", "value2" };
+            return new JsonResult(manager.GetFlags());
         }
 
-        // GET api/values/5
-        [HttpGet("{id}")]
-        public ActionResult<string> Get(int id)
+        [Route("[controller]/active")]
+        [HttpGet]
+        public ActionResult<FeatureModel> Active()
         {
-            return "value";
-        }
+            var parameters = ControllerContext.HttpContext.Request.Query;
+            if (!parameters.ContainsKey("key"))
+                return NotFound();
 
-        // POST api/values
-        [HttpPost]
-        public void Post([FromBody] string value)
-        {
-        }
-
-        // PUT api/values/5
-        [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
-        {
-        }
-
-        // DELETE api/values/5
-        [HttpDelete("{id}")]
-        public void Delete(int id)
-        {
+            var key = parameters["key"];
+            bool activated = false;
+            if (parameters.Count > 1)
+            {
+                var entries = parameters.Where(k => k.Key != "key").ToDictionary(k => k.Key, v => v.Value);
+                activated = manager.Active<IDictionary<string, string>>(key,
+                                    p => p.Keys.All(k => entries.ContainsKey(k) && entries[k] == p[k]));
+            } else {
+                activated = manager.Active(key);
+            }
+            return new JsonResult(new FeatureModel {
+                Name = key,
+                Activated = activated
+            });
         }
     }
 }

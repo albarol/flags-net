@@ -4,12 +4,15 @@ namespace FlagsNet
 {
     public class CircuitBreaker
     {
+        private readonly TimeSpan timeSpan;
+
         private CircuitStatus status;
         private DateTime lastFail;
 
-        public CircuitBreaker()
+        public CircuitBreaker(int phaseSeconds = 60)
         {
             status = CircuitStatus.Closed;
+            this.timeSpan = TimeSpan.FromSeconds(phaseSeconds);
         }
 
         public void SetFail()
@@ -37,7 +40,7 @@ namespace FlagsNet
                 if (status != CircuitStatus.Closed)
                 {
                     var delta = DateTime.UtcNow - lastFail;
-                    if (delta.TotalMinutes > 1)
+                    if (delta.TotalSeconds > timeSpan.TotalSeconds)
                     {
                         status = status == CircuitStatus.HalfOpen ? CircuitStatus.Closed : CircuitStatus.HalfOpen;
                     }
