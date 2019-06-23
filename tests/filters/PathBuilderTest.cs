@@ -40,5 +40,25 @@ namespace FlagsNet.Tests.Filters
             var jsonPath = PathBuilder.Parse(parameters);
             Assert.AreEqual("$[?(@.name == 'flags-net' && @.exp > '30' && @.parameter)].parameter[?(@ == 'path')]", jsonPath);
         }
+
+        [Test]
+        public void Test_Should_Throws_Exception_When_Has_Many_In_Operator()
+        {
+            var parameters = new Dictionary<string, string>
+            {
+                { "parameter__in", "path"},
+                { "parameter2__in", "path"}
+            };
+
+            try
+            {
+                PathBuilder.Parse(parameters);
+                Assert.Fail("PathFilterException should be thrown");
+            }
+            catch(PathFilterException)
+            {
+                Assert.Pass();
+            }
+        }
     }
 }
