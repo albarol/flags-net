@@ -57,6 +57,19 @@ namespace FlagsNet
             }
         }
 
+        public bool Active(string flag, string jsonPath)
+        {
+            try
+            {
+                return Source.Switch(flag, jsonPath);
+            }
+            catch(FlagSourceException)
+            {
+                circuitBreaker.SetFail();
+                return readOnlySource.Switch(flag, jsonPath);
+            }
+        }
+
         public bool Active<T>(string flag, Predicate<T> predicate)
         {
             try

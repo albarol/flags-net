@@ -1,0 +1,14 @@
+{
+    "feature:basic": {
+        "Activated": "True",
+        "Conditions": null
+    },
+    "feature:intermediate": {
+        "Activated": "True",
+        "Conditions": [{"param": "ab"}, {"param":"bc"}]
+    },
+    "feature:advanced": {
+        "Activated": "True",
+        "Conditions": [{"param": "ab", "data": ["1", "2"]}, {"param":"bc"}]
+    }
+}

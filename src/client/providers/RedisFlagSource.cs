@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using StackExchange.Redis;
 
 namespace FlagsNet.Providers
@@ -74,6 +75,16 @@ namespace FlagsNet.Providers
             var activated = Convert.ToBoolean(db.HashGet(key, ACTIVATED_FLAG));
             var value = db.HashGet(key, VALUE_FLAG);
             return activated && string.IsNullOrEmpty(value);
+        }
+
+        public bool Switch(string key, string jsonPath)
+        {
+            var db = Database;
+            if (!HasFeature(key)) return false;
+            var activated = Convert.ToBoolean(db.HashGet(key, ACTIVATED_FLAG));
+            var value = db.HashGet(key, VALUE_FLAG);
+            JArray o = JArray.Parse(value);
+            return activated && o.SelectTokens(jsonPath).Count() > 0;
         }
 
         public bool Switch<T>(string key, Predicate<T> predicate)

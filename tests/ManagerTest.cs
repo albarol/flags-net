@@ -9,7 +9,7 @@ namespace FlagsNet.Tests
 {
     public abstract class ManagerTest
     {
-        Manager manager;
+        protected Manager manager;
 
         [OneTimeSetUp]
         public void Setup()
@@ -115,6 +115,13 @@ namespace FlagsNet.Tests
         }
 
         [Test]
+        public void Test_Should_Find_By_Json_Path()
+        {
+            var feature = manager.Active("feature:custom", "$[?(@.Name == 'flags-net' && @.Parameter == 'flags-net-parameter')]");
+            Assert.IsTrue(feature);
+        }
+
+        [Test]
         public void Test_Manager_Custom_Should_Return_Inactive_If_Pattern_Has_Not_Being_Passed()
         {
             var feature = manager.Active("feature:custom");
@@ -124,12 +131,12 @@ namespace FlagsNet.Tests
         [Test]
         public void Test_Manager_Load_Data()
         {
-            var content = "{\"feature:switch:newEnabled\": {\"Activated\": \"True\",\"Conditions\": null}, \"feature:switch:newDisabled\": {\"Activated\": \"False\", \"Conditions\": null}, \"feature:newCustom\": {\"Activated\": \"True\", \"Conditions\": [{\"Name\":\"MyFeature\"}]}}";
+            var content = "{\"feature:basic\": {\"Activated\": \"True\",\"Conditions\": null},\"feature:intermediate\": {\"Activated\": \"True\",\"Conditions\": [{\"param\": \"ab\"}, {\"param\":\"bc\"}]},\"feature:advanced\": {\"Activated\": \"True\",\"Conditions\": [{\"param\": \"ab\", \"data\": [\"1\", \"2\"]}, {\"param\":\"bc\"}]}}";
             manager.Load(content);
 
-            Assert.IsTrue(manager.Active("feature:switch:newEnabled"));
-            Assert.IsFalse(manager.Active("feature:switch:newDisabled"));
-            Assert.IsTrue(manager.Active<IDictionary<string, string>>("feature:newCustom", p => p.ContainsKey("Name") && p["Name"] == "MyFeature"));
+            Assert.IsTrue(manager.Active("feature:basic"));
+            Assert.IsFalse(manager.Active("feature:intermediate", "$[?(@.param == 'oi')]"));
+            Assert.IsTrue(manager.Active("feature:advanced", "$[?(@.param == 'ab')].data[?(@ == '1')]"));
         }
     }
 }

@@ -1,14 +1,11 @@
-﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
-using System.Threading.Tasks;
-using FlagsNet;
 using FlagsNet.Api.Models;
+using FlagsNet.Filters;
 using FlagsNet.Providers;
 using Microsoft.AspNetCore.Mvc;
 
-namespace api.Controllers
+namespace FlagsNet.Api.Controllers
 {
     public class FeaturesController : ControllerBase
     {
@@ -29,7 +26,7 @@ namespace api.Controllers
         [HttpGet]
         public ActionResult<FeatureModel> Active()
         {
-            var parameters = ControllerContext.HttpContext.Request.Query;
+            var parameters = ControllerContext.HttpContext.Request.Query.ToDictionary(s => s.Key, s => s.Value.ToString());
             if (!parameters.ContainsKey("key"))
                 return NotFound();
 
@@ -37,9 +34,8 @@ namespace api.Controllers
             bool activated = false;
             if (parameters.Count > 1)
             {
-                var entries = parameters.Where(k => k.Key != "key").ToDictionary(k => k.Key, v => v.Value);
-                activated = manager.Active<IDictionary<string, string>>(key,
-                                    p => p.Keys.All(k => entries.ContainsKey(k) && entries[k] == p[k]));
+                var jsonPath = PathBuilder.Parse(parameters.Where(i => i.Key != "key"));
+                activated = manager.Active(key, jsonPath);
             } else {
                 activated = manager.Active(key);
             }

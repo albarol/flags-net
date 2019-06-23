@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace FlagsNet.Providers
 {
@@ -49,6 +49,16 @@ namespace FlagsNet.Providers
             return flag.Activated && string.IsNullOrEmpty(flag.Value);
         }
 
+        public bool Switch(string key, string jsonPath)
+        {
+            if (!source.ContainsKey(key)) return false;
+            var flag = source[key];
+
+            if (!flag.Activated) return false;
+            JArray o = JArray.Parse(flag.Value);
+            return o.SelectTokens(jsonPath).Count() > 0;
+        }
+
         public bool Switch<T>(string key, Predicate<T> predicate)
         {
             if (!source.ContainsKey(key)) return false;
@@ -61,5 +71,6 @@ namespace FlagsNet.Providers
                     return true;
             return false;
         }
+
     }
 }

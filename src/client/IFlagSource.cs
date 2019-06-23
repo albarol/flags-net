@@ -11,6 +11,7 @@ namespace FlagsNet
         void Add(string key, FlagParameter parameter);
 
         bool Switch(string key);
+        bool Switch(string key, string jsonPath);
         bool Switch<T>(string key, Predicate<T> expression);
 
         IEnumerable<string> GetFlags();
